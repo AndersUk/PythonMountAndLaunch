@@ -1,7 +1,7 @@
 MountAndLaunch
 ==============
 
-Small Python program that mounts Samba points to local folders. If all these mounts are succesful it will then launch applications.
+Small Python program that mounts Samba points to local folders. If all these mounts are successful it will then launch local applications (which most likey make use of said mount points). 
 
 Currently 'settings.cfg' is hardcoded and expects the following structure:
 
