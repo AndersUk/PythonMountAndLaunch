@@ -4,6 +4,7 @@ MountAndLaunch
 Small Python program that mounts Samba points to local folders. If all these mounts are succesful it will then launch applications.
 
 Currently 'settings.cfg' is hardcoded and expects the following structure:
+
     [mount-points]
     ;** mount point structure: destination-server/path,local/path,username,password
     ;** examples:
