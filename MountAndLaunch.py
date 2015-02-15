@@ -9,7 +9,7 @@ def log( obj ):
 
 def createConfiguration( fname ):
     if( os.path.isfile(fname) ):
-        log( 'Configuration file \'{}\' already exists'.format( fname ) )
+        log( '>> Configuration file \'{}\' already exists'.format( fname ) )
         return False
     else:
         config = ConfigParser.RawConfigParser(allow_no_value = True)
@@ -33,7 +33,7 @@ def createConfiguration( fname ):
         
 def loadConfiguration( fname ):
     if( not os.path.isfile(fname) ):
-        log( 'Configuration file \'{}\' doesn\'t exist'.format( fname ) )
+        log( '>> Configuration file \'{}\' doesn\'t exist'.format( fname ) )
         return None
       
     config = ConfigParser.RawConfigParser(allow_no_value = True)
@@ -80,7 +80,7 @@ def mountMain( wantedMountPoints ):
     existingMounts = getExistingMounts()
         
     #** Unmount unwanted local points
-    unmountExistingMounts(wmps, existingMounts)
+    checkExistingMounts(wmps, existingMounts)
     
     #** Create local folders, incase unmout removed them
     makeLocalFolders( wmps )
@@ -92,15 +92,13 @@ def mountMain( wantedMountPoints ):
     existingMounts = getExistingMounts()
     
     #** Unmount unwanted local points
-    unmountExistingMounts(wmps, existingMounts)
+    checkExistingMounts(wmps, existingMounts)
     if( len(wmps) > 0):
-        log('Not all mounts successful:')
-        log(wmps)
+        log('Not all mounts successful - not launching applications')
         return False
     else:
-        log('All mounts successful - launching applications')
+        log('All mounts successful - launching applications...')
         return True
-    
   
 def getExistingMounts():
     #** 1) --------------------------------------
@@ -129,16 +127,22 @@ def parseMountLine( mountline ):
     
     return { 'destination': step3[0], 'local':step2[1] }
     
-def unmountExistingMounts(wantedMountPoints, existintMounts):
+def checkExistingMounts(wantedMountPoints, existintMounts):
     #** Unmount any mount points that match local, but don't match destination
     alreadyMounted = []
     for pmp in existintMounts:
         for mp in wantedMountPoints:
             if( ( mp['local'] == pmp['local'] ) and ( mp['destination'] != pmp['destination']) ):
-                log( 'Unmounting: \'{}\' as mounted to: \'{}\''.format( pmp['local'],  pmp['destination']))
-                um = subprocess.Popen(['umount', '-f', mp['local']], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                log( 'Unmounting: \'{}\' as mounted to: \'{}\''.format( pmp['local'], pmp['destination']))
+                unmountParameters = ['umount', '-f', mp['local']]
+                um = subprocess.Popen(unmountParameters, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 out, err = um.communicate()
-                
+                if( err ):
+                    log('>> An error occurred when trying to unmount \'{}\'.'.format(mp['local']))
+                    log('>> Copy & paste the following into Terminal to get a more detailed error message:')
+                    log( ' '.join( unmountParameters ) )
+                    log('')
+                                    
             #** Make a note of any mounts that match a Wanted Mount Point
             if( ( mp['local'] == pmp['local'] ) and ( mp['destination'] == pmp['destination']) ):
                 alreadyMounted.append(mp)
@@ -150,6 +154,7 @@ def unmountExistingMounts(wantedMountPoints, existintMounts):
             wantedMountPoints.remove(a)
 
 def mountWantedMounts( wantedMountPoints ):
+    i = 1
     for mp in wantedMountPoints:
         #** Check for username/password
         auth = ''
@@ -164,18 +169,31 @@ def mountWantedMounts( wantedMountPoints ):
         
         #** Execute command
         try:
-            log( 'Mounting: \'{}\' to: \'{}\''.format( mp['destination'], mp['local']))
-            um = subprocess.Popen(['/sbin/mount','-t', 'smbfs', dest, mp['local']], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            log( 'Mounting {} of {}: \'{}\' to: \'{}\''.format( i, len(wantedMountPoints), mp['destination'], mp['local']))
+            i += 1
+            mountParameters = ['/sbin/mount','-t', 'smbfs', dest, mp['local']]
+            um = subprocess.Popen(mountParameters, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             out, err = um.communicate()
+            if( err ):
+                log('>> An error occurred when trying to mount: \'{}\' to: \'{}\''.format( mp['destination'], mp['local']) )
+                log('>> Copy & paste the following into Terminal to get a more detailed error message:')
+                log( ' '.join( mountParameters ) )
+                log('')
         except:
             pass
 
 def lauchMain( launchApps ):
+    i = 1
     for la in launchApps:
         lae = la.split(' ')
-        log( 'Launching: \'{}\''.format(la))
+        log( 'Launching {} of {}: \'{}\''.format(i, len(launchApps), la))
+        i += 1
         um = subprocess.Popen(lae, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = um.communicate()        
+        if( err ):
+            log('>> An error occurred when trying to launch the application above.')
+            log('>> Copy & paste from inbetween the quotes into Terminal to get a more detailed error message.')
+            log('')
 
 
 if __name__ == '__main__':
