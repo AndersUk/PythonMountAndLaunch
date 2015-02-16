@@ -1,8 +1,25 @@
 #!/usr/bin/python
 
+""" MountAndLaunch.py
+
+This is written against Python v2.7.x
+
+"""
+
+__author__    = 'Andi Vaughan @AndersUk'
+__version__   = '0.1'
+__copyright__ = 'None.'
+__license__   = 'Do what you like with it... but a nod in my direction would be nice.'
+
+#---------------------------------------------------------------------
+
 import subprocess
 import os
 import ConfigParser
+from optparse import OptionParser
+
+_appSet = {'config-file': 'settings.cfg', 'mount-points': [], 'launch-apps': [], 'suppress-err-cmd-line': False, 'generate-config': False }
+_lineRepeat = 60
 
 def log( obj ):
     print( obj )
@@ -26,9 +43,16 @@ def createConfiguration( fname ):
         config.set('launch-apps', '; app2 = open -n /Applications/TextEdit.app')
         
         # Writing our configuration file to 'example.cfg'
-        with open(fname, 'wb') as configfile:
-            config.write(configfile)
-        
+        try:
+            with open(fname, 'wb') as configfile:
+                config.write(configfile)
+            
+            log( 'Generated configuration file \'{}\' with example settings'.format( fname ) )
+                
+        except:
+            log( '>> Couldn\'t create configuration file \'{}\''.format( fname ) )
+            pass
+            
         return True
         
 def loadConfiguration( fname ):
@@ -139,8 +163,9 @@ def checkExistingMounts(wantedMountPoints, existintMounts):
                 out, err = um.communicate()
                 if( err ):
                     log('>> An error occurred when trying to unmount \'{}\'.'.format(mp['local']))
-                    log('>> Copy & paste the following into Terminal to get a more detailed error message:')
-                    log( ' '.join( unmountParameters ) )
+                    if( _appSet['suppress-err-cmd-line'] is False ):
+                        log('>> Copy & paste the following into Terminal to get a more detailed error message:')
+                        log( ' '.join( unmountParameters ) )
                     log('')
                                     
             #** Make a note of any mounts that match a Wanted Mount Point
@@ -176,8 +201,9 @@ def mountWantedMounts( wantedMountPoints ):
             out, err = um.communicate()
             if( err ):
                 log('>> An error occurred when trying to mount: \'{}\' to: \'{}\''.format( mp['destination'], mp['local']) )
-                log('>> Copy & paste the following into Terminal to get a more detailed error message:')
-                log( ' '.join( mountParameters ) )
+                if( _appSet['suppress-err-cmd-line'] is False ):
+                    log('>> Copy & paste the following into Terminal to get a more detailed error message:')
+                    log( ' '.join( mountParameters ) )
                 log('')
         except:
             pass
@@ -195,13 +221,59 @@ def lauchMain( launchApps ):
             log('>> Copy & paste from inbetween the quotes into Terminal to get a more detailed error message.')
             log('')
 
+            
+
+def printHeader():
+    print('=' * _lineRepeat)
+    print('SCRIPT:                       {0}'.format( os.path.basename(__file__) ) )
+    print('VERSION:                      {0}'.format( __version__ ) )
+    print('-' * _lineRepeat)
+    print('CONFIG FILE:                  {0}'.format( _appSet['config-file'] ) )
+    print('GENERATE CONFIG FILE:         {0}'.format( _appSet['generate-config'] ) )
+    print('SUPPRESS DETAILED ERROR MSGS: {0}'.format( _appSet['suppress-err-cmd-line'] ) )
+    print('=' * _lineRepeat)
+    print('')
 
 if __name__ == '__main__':
-    fname = 'settings.cfg'
+    #** Argument Parsing -------------------------------------------------------
+    parser = OptionParser(usage='usage: %prog [options]')
 
-    config = loadConfiguration(fname)
-    if( config is not None ):
-        if( mountMain(config['mount-points']) ):
-            lauchMain(config['launch-apps'])
+    parser.add_option('-c', '--config',
+                      dest='configfile',
+                      default=_appSet['config-file'],
+                      type='string',
+                      help='Configuration file name. (Default: \'{0}\')'.format(_appSet['config-file']) )
+
+    parser.add_option('-g', '--generate',
+                      dest='generate',
+                      action='store_true',
+                      default=False,
+                      help='Create an empty Configuration file. (If it doesn\'t already exist)')
+
+    parser.add_option('-s', '--suppress',
+                      dest='suppress',
+                      action='store_true',
+                      default=False,
+                      help='Suppress the output of sensitive command line instructions in the event on an error.')
+
+    (options, args) = parser.parse_args()
+    _appSet['config-file'] = options.configfile
+    _appSet['suppress-err-cmd-line'] = options.suppress
+    _appSet['generate-config'] = options.generate
+
+    #** Print out the header ---------------------------------------------------
+    printHeader()
+
+    #** Have at it -------------------------------------------------------------
+    if(  _appSet['generate-config'] ):
+        createConfiguration( _appSet['config-file'] )
+    else:
+        config = loadConfiguration(_appSet['config-file'])
+        if( config is not None ):
+            if( mountMain(config['mount-points']) ):
+                lauchMain(config['launch-apps'])
     
+    print( '' )
+    print('=' * _lineRepeat)
+    print( 'Done' )
     
