@@ -211,12 +211,14 @@ def mountWantedMounts( wantedMountPoints ):
 def lauchMain( launchApps ):
     i = 1
     for la in launchApps:
-        lae = la.split(' ')
         log( 'Launching {} of {}: \'{}\''.format(i, len(launchApps), la))
         i += 1
-        um = subprocess.Popen(lae, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        #lae = la.split(' ')
+        #um = subprocess.Popen(lae, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        um = subprocess.Popen(la, shell=True)        
         out, err = um.communicate()        
         if( err ):
+            log( err )
             log('>> An error occurred when trying to launch the application above.')
             log('>> Copy & paste from inbetween the quotes into Terminal to get a more detailed error message.')
             log('')
