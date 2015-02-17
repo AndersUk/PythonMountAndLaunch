@@ -26,7 +26,8 @@ This program simply loads a configuration file that contains a list of Samba sha
     ./MountAndLaunch.py
 
 
-**Example Config File:**
+**Example Config File**:
+
 Currently `settings.cfg` expects the following structure:
 
     [mount-points]
