@@ -7,7 +7,7 @@ This is written against Python v2.7.x
 """
 
 __author__    = 'Andi Vaughan @AndersUk'
-__version__   = '0.1'
+__version__   = '0.2'
 __copyright__ = 'None.'
 __license__   = 'Do what you like with it... but a nod in my direction would be nice.'
 
