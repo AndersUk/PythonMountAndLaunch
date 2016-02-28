@@ -7,7 +7,7 @@ This is written against Python v2.7.x
 """
 
 __author__    = 'Andi Vaughan @AndersUk'
-__version__   = '0.2'
+__version__   = '0.3'
 __copyright__ = 'None.'
 __license__   = 'Do what you like with it... but a nod in my direction would be nice.'
 
@@ -196,7 +196,7 @@ def mountWantedMounts( wantedMountPoints ):
         try:
             log( 'Mounting {} of {}: \'{}\' to: \'{}\''.format( i, len(wantedMountPoints), mp['destination'], mp['local']))
             i += 1
-            mountParameters = ['/sbin/mount','-t', 'cifs', dest, mp['local'], 'rw,noexec,iocharset=utf8,file_mode=0777,dir_mode=0777 0 0']
+            mountParameters = ['/sbin/mount','-t', 'cifs', dest, mp['local'], '-o', 'rw,noexec,iocharset=utf8,file_mode=0777,dir_mode=0777 0 0']
             um = subprocess.Popen(mountParameters, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             out, err = um.communicate()
             if( err ):
