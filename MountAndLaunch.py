@@ -127,7 +127,7 @@ def mountMain( wantedMountPoints ):
 def getExistingMounts():
     #** 1) --------------------------------------
     #** Get the list of known mounts
-    p = subprocess.Popen(['mount'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = subprocess.Popen(['/sbin/mount'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = p.communicate()
     lines = out.splitlines(False)
 
@@ -158,7 +158,7 @@ def checkExistingMounts(wantedMountPoints, existintMounts):
         for mp in wantedMountPoints:
             if( ( mp['local'] == pmp['local'] ) and ( mp['destination'] != pmp['destination']) ):
                 log( 'Unmounting: \'{}\' as mounted to: \'{}\''.format( pmp['local'], pmp['destination']))
-                unmountParameters = ['umount', '-f', mp['local']]
+                unmountParameters = ['/sbin/umount', '-f', mp['local']]
                 um = subprocess.Popen(unmountParameters, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 out, err = um.communicate()
                 if( err ):
@@ -196,7 +196,7 @@ def mountWantedMounts( wantedMountPoints ):
         try:
             log( 'Mounting {} of {}: \'{}\' to: \'{}\''.format( i, len(wantedMountPoints), mp['destination'], mp['local']))
             i += 1
-            mountParameters = ['/sbin/mount','-t', 'smbfs', dest, mp['local']]
+            mountParameters = ['/sbin/mount','-t', 'cifs', dest, mp['local'], 'rw,noexec,iocharset=utf8,file_mode=0777,dir_mode=0777 0 0']
             um = subprocess.Popen(mountParameters, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             out, err = um.communicate()
             if( err ):
